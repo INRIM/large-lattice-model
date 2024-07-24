@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "large-lattice-model"
+version = "0.1.0"
+description = ""
+authors = ["Marco Pizzocaro <m.pizzocaro@inrim.it>"]
+readme = "README.md"
+packages = [{include = "large_lattice_model", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
