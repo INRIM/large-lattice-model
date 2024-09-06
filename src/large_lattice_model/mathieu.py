@@ -17,6 +17,8 @@ from numba import float64, int64, njit, vectorize
 # and use numba for a fast vectorization
 # Finally this file fallback to scipy if GSL is not found and provide an analitycal approximation made fast using numba
 
+scipy_mathieu_b = scipy.special.mathieu_b
+
 
 def _load_lib(libname):
     lib_path = find_library(libname)
@@ -52,7 +54,7 @@ if gsl:
 
 else:
     # If the GSL library is not found, fallback to scipy
-    mathieu_b = scipy.special.mathieu_b
+    mathieu_b = scipy_mathieu_b
 
 
 @njit
@@ -75,11 +77,7 @@ def _mathieu_b_asymptotic(m, q):
     #    term2 = 2.0 * s * h
     #    term1 = -2.0 * h**2
 
-    result = (
-        (2.0 * s - 2.0 * h) * h
-        + term3
-        + (term4 + (term5 + (term6 + (term7 + term8 / h) / h) / h) / h) / h
-    )
+    result = (2.0 * s - 2.0 * h) * h + term3 + (term4 + (term5 + (term6 + (term7 + term8 / h) / h) / h) / h) / h
 
     return result
 
