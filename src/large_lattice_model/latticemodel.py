@@ -1,28 +1,38 @@
 import numpy as np
 from scipy.constants import c, h, k
 
+import large_lattice_model.settings as settings
 
-class LatticeModel:
-    """A class tha model the motional spectra of atoms trapped in a one-dimensional optical lattice."""
 
-    def __init__(self, w=60e-6):
-        # Yb
-        self.m = 2.83846417e-25  # atomic mass
-        self.fL = 394798e9  # lattice frequency
-        self.wc = 518295836590863.0  # clock frequency
+def set_atom(atom):
+    """Set the scale parameters of the lattice model (recoil energy, lattice wavevector, clock wavevector).
+    By default the settings are for 171Yb.
 
-        self.w = w  # lattice waist
+    Parameters
+    ----------
+    atom : str,
+        One of '171Yb', '87Sr', '88Sr'
 
-        self._set_scale()
+    Notes:
+    ------
+    If your atom is not in the list use [](set_atomic_properties) instead.
 
-    def _set_scale(self):
-        self.lL = c / self.fL  # lattice wavelength
-        self.Er = h**2 / (2 * self.m * self.lL**2)  # recoil energy
-        self.vrec = h / (2 * self.m * self.lL**2)  # recoil frequency
+    """
+    settings.Er, settings.k, settings.kc = settings.scale_parameters_from_atom(atom)
+    return settings.Er, settings.k, settings.kc
 
-        # problem scale
-        self.k = 2 * np.pi / self.lL
-        self.kappa = np.sqrt(2) / self.w
 
-        self.lc = c / self.wc
-        self.kc = 2 * np.pi / self.lc
+def set_atomic_properties(lattice_frequency, clock_frequency, atomic_mass):
+    """Set custom scale parameters of the lattice model (recoil energy, lattice wavevector, clock wavevector).
+
+    Parameters
+    ----------
+    lattice_frequency : float
+        lattice frequency in Hz
+    clock_frequency : float
+        clock frequency in Hz
+    atomic_mass : float
+        atomic mass in atomic mass constants
+    """
+    settings.Er, settings.k, settings.kc = settings.scale_parameters(lattice_frequency, clock_frequency, atomic_mass)
+    return settings.Er, settings.k, settings.kc
