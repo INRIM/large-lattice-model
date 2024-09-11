@@ -1,7 +1,7 @@
 from functools import lru_cache  # with maxsize > ~16k reduces computation time from 70 s to 10 s
 
 import numpy as np
-import scipy.integrate as integ
+import scipy.integrate as integrate
 import scipy.optimize as opt
 from numba import float64, int64, njit, vectorize
 from scipy.constants import c, h, hbar
@@ -9,7 +9,7 @@ from scipy.constants import k as kB
 from scipy.special import eval_genlaguerre, factorial
 
 import large_lattice_model.settings as settings
-from large_lattice_model.mathieu import mathieu_b
+from large_lattice_model.mathieu import mathieu_b, mathieu_se
 
 lru_maxsize = 65536
 
@@ -65,7 +65,7 @@ def U(rho, D, nz):
     return mathieu_b(nz + 1, Drho / 4) - Drho / 2
 
 
-@vectorize([float64(float64, float64, int64)])
+# @vectorize([float64(float64, float64, int64)])
 @lru_cache(maxsize=lru_maxsize)
 def R(E, D, nz):
     """Inverse of the lattice potential surface U(rho) (Beloy2020 pag. 4)
@@ -90,6 +90,9 @@ def R(E, D, nz):
         return 0.0
 
     return res.root
+
+
+R = np.vectorize(R)
 
 
 def DeltaU(rho, D, nz, dn=1):
@@ -137,36 +140,55 @@ def Omega(rho, D, nz, dn=1):
     )
 
 
-# TODO: add mathieu_se to mathieu
-# # Using Mathieu Functions
+# Using Mathieu Functions
 # @vectorize([float64(float64, float64, int64, int64)])
-# def OmegaMat(rho, D, nz, dn=1):
-# 	"""Normalized Rabi frequency for Mathieu wavefunctions (Beloy2020 appendix)
+def OmegaMat(rho, D, nz, dn=1):
+    """Normalized Rabi frequency for Mathieu wavefunctions (Beloy2020 appendix)
 
-# 	Inputs
-# 	------
-# 	rho : radial coordinates in units of kappa**-1
-# 	D : depth of the lattice in Er
-# 	nz : longitudinal quantum number of the starting level
-# 	dn : longitudinal quantum number jump (default: 1)
+    Inputs
+    ------
+    rho : radial coordinates in units of kappa**-1
+    D : depth of the lattice in Er
+    nz : longitudinal quantum number of the starting level
+    dn : longitudinal quantum number jump (default: 1)
 
-# 	Returns
-# 	-------
-# 	Omega : Normalized Rabi frequency (between 0 and 1)
-# 	"""
+    Returns
+    -------
+    Omega : Normalized Rabi frequency (between 0 and 1)
+    """
 
-# 	Drho = D*np.exp(-rho**2)
-# 	k = settings.k
-# 	kc = settings.kc
+    Drho = D * np.exp(-(rho**2))
+    k = settings.k
+    kc = settings.kc
 
-# 	lim = np.pi/(2*k)
-# 	if dn % 2:
-# 		res2 = integ.quad(lambda z: 2*k/np.pi * sf.mathieu_se(nz+1,  Drho/4, (k*z + np.pi/2)) * np.sin(kc*z) * sf.mathieu_se(nz+1+dn, Drho/4, (k*z + np.pi/2)), 0,lim) # pygsl -- slower but no bugs!
-# 	else:
-# 		res2 = integ.quad(lambda z: 2*k/np.pi * sf.mathieu_se(nz+1,  Drho/4, (k*z + np.pi/2)) * np.cos(kc*z) * sf.mathieu_se(nz+1+dn, Drho/4, (k*z + np.pi/2)), 0,lim) # pygsl -- slower but no bugs!
+    lim = np.pi / (2 * k)
+    if dn % 2:
+        res2 = integrate.quad(
+            lambda z: 2
+            * k
+            / np.pi
+            * mathieu_se(nz + 1, Drho / 4, (k * z + np.pi / 2))
+            * np.sin(kc * z)
+            * mathieu_se(nz + 1 + dn, Drho / 4, (k * z + np.pi / 2)),
+            0,
+            lim,
+        )
+    else:
+        res2 = integrate.quad(
+            lambda z: 2
+            * k
+            / np.pi
+            * mathieu_se(nz + 1, Drho / 4, (k * z + np.pi / 2))
+            * np.cos(kc * z)
+            * mathieu_se(nz + 1 + dn, Drho / 4, (k * z + np.pi / 2)),
+            0,
+            lim,
+        )
+    # integral is even
+    return 2 * abs(res2[0])
 
-# 	# integral is even
-# 	return 2*abs(res2[0])
+
+OmegaMat = np.vectorize(OmegaMat)
 
 
 def Gn(E, D, nz):
@@ -250,10 +272,6 @@ def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
     beta_r = settings.Er / (kB * Tr)
     beta_z = settings.Er / (kB * Tz)
 
-    # simple exp factor for a given Tz
-    # will be just used computationally to reduce the number of lorentzian used at high nz
-    # r = exp(-betaz)
-
     tot = np.zeros(x.shape)
     total_norm = 0
 
@@ -262,10 +280,6 @@ def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
 
         # this just save computational time
         # use less samples for high levels
-        # formula with r is normalized exponential distribution (from geometric series)
-        # high dn use higher number because it has sharper lorentzian
-        # N = int(Natoms*r**nz/(1-r**Nz)*(1-r)+2.)*dn
-
         # method to calculate number of lorentzian function to sum
         N = int(DeltaU(0, D, nz, dn) * fac * (nz + 1) ** -0.5)
 

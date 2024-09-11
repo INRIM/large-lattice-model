@@ -1,12 +1,13 @@
 from functools import lru_cache
 
 import numpy as np
-import scipy.integrate as integ
+import scipy.integrate as integrate
 from numba import float64, vectorize
 from scipy.constants import k as kB
 
 import large_lattice_model.settings as settings
 from large_lattice_model.latticemodel import R, U, max_nz
+from large_lattice_model.mathieu import mathieu_se
 
 lru_maxsize = 65536
 
@@ -28,7 +29,7 @@ def Zf(rho, z, D, nz):
     """
 
     Drho = D * np.exp(-(rho**2))
-    return np.sqrt(2 * settings.k / np.pi) * sf.mathieu_se(nz + 1, Drho / 4, (settings.k * z + np.pi / 2))
+    return np.sqrt(2 * settings.k / np.pi) * mathieu_se(nz + 1, Drho / 4, (settings.k * z + np.pi / 2))
 
 
 @lru_cache(maxsize=lru_maxsize)
@@ -48,8 +49,8 @@ def beloy_x(rho, D, nz):
 
     lim = np.pi / (2 * settings.k)
 
-    res2 = integ.quad(lambda z: Zf(rho, z, D, nz) ** 2 * np.cos(settings.k * z) ** 2, 0, lim)
-    # integral is even
+    res2 = integrate.quad(lambda z: Zf(rho, z, D, nz) ** 2 * np.cos(settings.k * z) ** 2, 0, lim)
+    # integrateral is even
     return 2 * abs(res2[0]) * np.exp(-(rho**2))
 
 
@@ -70,8 +71,8 @@ def beloy_y(rho, D, nz):
 
     lim = np.pi / (2 * settings.k)
 
-    res2 = integ.quad(lambda z: Zf(rho, z, D, nz) ** 2 * np.sin(settings.k * z) ** 2, 0, lim)
-    # integral is even
+    res2 = integrate.quad(lambda z: Zf(rho, z, D, nz) ** 2 * np.sin(settings.k * z) ** 2, 0, lim)
+    # integrateral is even
     return 2 * abs(res2[0]) * np.exp(-(rho**2))
 
 
@@ -92,8 +93,8 @@ def beloy_z(rho, D, nz):
 
     lim = np.pi / (2 * settings.k)
 
-    res2 = integ.quad(lambda z: Zf(rho, z, D, nz) ** 2 * np.cos(settings.k * z) ** 4, 0, lim)
-    # integral is even
+    res2 = integrate.quad(lambda z: Zf(rho, z, D, nz) ** 2 * np.cos(settings.k * z) ** 4, 0, lim)
+    # integrateral is even
     return 2 * abs(res2[0]) * np.exp(-2 * rho**2)
 
 
@@ -114,18 +115,18 @@ def beloy_XYZ(D, Tz, Tr):
     for nz in nnz:
         R0 = R(0, D, nz)
         # x
-        resx = integ.quad(lambda rho: beloy_x(rho, D, nz) * rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
+        resx = integrate.quad(lambda rho: beloy_x(rho, D, nz) * rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
         numx += resx[0] * Qnz[nz]
 
         # y = exp(-rho^2) - x
-        resy = integ.quad(lambda rho: np.exp(-(rho**2)) * rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
+        resy = integrate.quad(lambda rho: np.exp(-(rho**2)) * rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
         numy += (resy[0] - resx[0]) * Qnz[nz]
 
         # z
-        res = integ.quad(lambda rho: beloy_z(rho, D, nz) * rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
+        res = integrate.quad(lambda rho: beloy_z(rho, D, nz) * rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
         numz += res[0] * Qnz[nz]
 
-        res = integ.quad(lambda rho: rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
+        res = integrate.quad(lambda rho: rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
         den += res[0] * Qnz[nz]
 
     return numx / den, numy / den, numz / den

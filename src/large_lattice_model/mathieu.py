@@ -57,6 +57,34 @@ else:
     mathieu_b = scipy_mathieu_b
 
 
+def scipy_mathieu_se(m, q, x):
+    """Odd Mathieu function from scipy implementation, with input in radians and dropping the derivative"""
+    func, deriv = scipy.special.mathieu_sem(m, q, x * 180.0 / np.pi)
+    return func
+
+
+if gsl:
+    gsl.gsl_sf_mathieu_se.restype = ctypes.c_double
+    gsl.gsl_sf_mathieu_se.argtypes = [ctypes.c_int, ctypes.c_double, ctypes.c_double]
+
+    gsl_sf_mathieu_se = gsl.gsl_sf_mathieu_se
+
+    @njit
+    def _gsl_mathieu_se(n, q, x):
+        return gsl_sf_mathieu_se(n, q, x)
+
+    # this is fast!
+    @vectorize([float64(int64, float64, float64)])
+    def gsl_mathieu_se(n, q, x):
+        return _gsl_mathieu_se(n, q, x)
+
+    mathieu_se = gsl_mathieu_se
+
+else:
+    # If the GSL library is not found, fallback to scipy
+    mathieu_se = scipy_mathieu_se
+
+
 @njit
 def _mathieu_b_asymptotic(m, q):
     """Asymptotic approximation of the characteristic value of odd Mathieu functions
