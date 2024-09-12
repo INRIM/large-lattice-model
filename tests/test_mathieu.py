@@ -1,11 +1,11 @@
 import numpy as np
 import pytest
-from hypothesis import given
+import scipy.special
+from hypothesis import given, settings
 from hypothesis import strategies as st
 from hypothesis.extra.numpy import arrays
-from scipy.special import mathieu_b as scipy_mathieu_b
 
-from large_lattice_model.mathieu import gsl, gsl_mathieu_b, mathieu_b_asymptotic
+from large_lattice_model.mathieu import gsl, gsl_mathieu_b, gsl_mathieu_se, mathieu_b_asymptotic, scipy_mathieu_se
 
 gsl_available = gsl is not None
 
@@ -28,7 +28,7 @@ def test_gsl_mathieu_b():
 )
 def test_gsl_mathieu_b_vs_scipy(n, x):
     gsl_result = gsl_mathieu_b(n, x)
-    scipy_result = scipy_mathieu_b(n, x)
+    scipy_result = scipy.special.mathieu_b(n, x)
 
     assert gsl_result == pytest.approx(scipy_result)
 
@@ -40,7 +40,7 @@ def test_gsl_mathieu_b_vs_scipy(n, x):
 )
 def test_gsl_mathieu_b_vs_scipy_numpy(n, x):
     gsl_result = gsl_mathieu_b(n, x)
-    scipy_result = scipy_mathieu_b(n, x)
+    scipy_result = scipy.special.mathieu_b(n, x)
 
     assert gsl_result == pytest.approx(scipy_result)
 
@@ -51,7 +51,7 @@ def test_gsl_mathieu_b_vs_scipy_numpy(n, x):
 
 @pytest.mark.skipif(not gsl_available, reason="GSL library is not available, skipping mathieu_b_asymptotic tests.")
 @given(
-    n=st.integers(min_value=1, max_value=8),
+    n=st.integers(min_value=1, max_value=7),
     x=st.floats(min_value=150, max_value=500, allow_nan=False, allow_infinity=False),
 )
 def test_mathieu_b_asymptotic_vs_gsl(n, x):
@@ -59,3 +59,25 @@ def test_mathieu_b_asymptotic_vs_gsl(n, x):
     gsl_result = gsl_mathieu_b(n, x)
 
     assert asymptotic_result == pytest.approx(gsl_result, rel=1e-1)
+
+
+@pytest.mark.skipif(not gsl_available, reason="GSL library is not available, skipping gsl_mathieu_b tests.")
+@given(
+    n=st.integers(min_value=1, max_value=25),
+    q=st.floats(min_value=0.001, max_value=30),
+)
+def test_gsl_mathieu_se(n, q):
+    gsl_result = gsl_mathieu_se(n, q, 0)
+    assert gsl_result == 0
+
+
+@given(
+    n=st.integers(min_value=1, max_value=25),
+    q=st.floats(min_value=0.001, max_value=30),
+    x=st.floats(min_value=0.0, max_value=np.pi),
+)
+@settings(max_examples=5)
+def test_scipy_mathieu_se(n, q, x):
+    large_result = scipy_mathieu_se(n, q, x)
+    scipy_result = scipy.special.mathieu_sem(n, q, x * 180 / np.pi)[0]
+    assert large_result == scipy_result

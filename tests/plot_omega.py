@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp
 from matplotlib import pyplot as plt
 
-from large_lattice_model.latticemodel import Omega, OmegaMat, OmegaMat2, R, max_nz
+from large_lattice_model.latticemodel import OmegaMat2, R, max_nz, rabi_bo, rabi_ho
 
 plt.close("all")
 plt.ion()
@@ -22,8 +22,8 @@ for nz in np.arange(Nz):
     rr_down = rr[:max_n]
     rr_up = rr[max_n:]
 
-    plt.plot(rr_down, Omega(rr_down, D, nz) ** 2, color="C0")
-    plt.plot(rr_down, OmegaMat(rr_down, D, nz) ** 2, color="C1")
+    plt.plot(rr_down, rabi_ho(rr_down, D, nz) ** 2, color="C0")
+    plt.plot(rr_down, rabi_bo(rr_down, D, nz) ** 2, color="C1")
 
 
 plt.ylim(0, 0.4)

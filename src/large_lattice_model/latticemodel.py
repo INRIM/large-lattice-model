@@ -114,7 +114,7 @@ def DeltaU(rho, D, nz, dn=1):
 
 
 # Harmonic Oscillator
-def Omega(rho, D, nz, dn=1):
+def rabi_ho(rho, D, nz, dn=1):
     """Normalized Rabi frequency for the harmonic oscillator (Wineland1979 eq. 31)
 
     Inputs
@@ -142,8 +142,8 @@ def Omega(rho, D, nz, dn=1):
 
 # Using Mathieu Functions
 # @vectorize([float64(float64, float64, int64, int64)])
-def OmegaMat(rho, D, nz, dn=1):
-    """Normalized Rabi frequency for Mathieu wavefunctions (Beloy2020 appendix)
+def rabi_bo(rho, D, nz, dn=1):
+    """Normalized Rabi frequency for Born-Oppenheimer wavefunctions calculated using Mathieu functions (Beloy2020 appendix)
 
     Inputs
     ------
@@ -163,32 +163,21 @@ def OmegaMat(rho, D, nz, dn=1):
 
     lim = np.pi / (2 * k)
     if dn % 2:
-        res2 = integrate.quad(
-            lambda z: 2
-            * k
-            / np.pi
-            * mathieu_se(nz + 1, Drho / 4, (k * z + np.pi / 2))
-            * np.sin(kc * z)
-            * mathieu_se(nz + 1 + dn, Drho / 4, (k * z + np.pi / 2)),
-            0,
-            lim,
-        )
+        # fmt: off
+        integrand = lambda z: 2 * k / np.pi * mathieu_se(nz + 1, Drho / 4, (k * z + np.pi / 2)) * np.sin(kc * z) * mathieu_se(nz + 1 + dn, Drho / 4, (k * z + np.pi / 2))
+        # fmt: on
+
     else:
-        res2 = integrate.quad(
-            lambda z: 2
-            * k
-            / np.pi
-            * mathieu_se(nz + 1, Drho / 4, (k * z + np.pi / 2))
-            * np.cos(kc * z)
-            * mathieu_se(nz + 1 + dn, Drho / 4, (k * z + np.pi / 2)),
-            0,
-            lim,
-        )
+        # fmt: off
+        integrand = lambda z: 2 * k / np.pi * mathieu_se(nz + 1, Drho / 4, (k * z + np.pi / 2)) * np.cos(kc * z) * mathieu_se(nz + 1 + dn, Drho / 4, (k * z + np.pi / 2))
+        # fmt: on
+
     # integral is even
+    res2 = integrate.quad(integrand, 0, lim)
     return 2 * abs(res2[0])
 
 
-OmegaMat = np.vectorize(OmegaMat)
+rabi_bo = np.vectorize(rabi_bo)
 
 
 def Gn(E, D, nz):
@@ -246,28 +235,28 @@ def lor(x, x0, w):
 # both sideband
 # it is faster to calculate sidebands at the same time
 def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
-    """Lattice sidebands as a sum of lorentzian.
+    # """Lattice sidebands as a sum of lorentzian.
 
-    Inputs
-    ------
-    x : frequency in Hz
-    D : depth of the lattice in Er
-    Tz : longitudinal temperature in K
-    Tr : radial temperature in K
-    b : blue sidebands scaling
-    r : red sidebands scaling
-    wc : carrier half width half maximum
-    dn : order of the sideband (default: 1)
-    E_max : max energy levels populated (default: 0)
-    fac : control the number of lorentzian to be used in the sum
-    higher number will give smoother sidebands but take more computational time
-    (default: 10)
+    # Inputs
+    # ------
+    # x : frequency in Hz
+    # D : depth of the lattice in Er
+    # Tz : longitudinal temperature in K
+    # Tr : radial temperature in K
+    # b : blue sidebands scaling
+    # r : red sidebands scaling
+    # wc : carrier half width half maximum
+    # dn : order of the sideband (default: 1)
+    # E_max : max energy levels populated (default: 0)
+    # fac : control the number of lorentzian to be used in the sum
+    # higher number will give smoother sidebands but take more computational time
+    # (default: 10)
 
-    Returns
-    -------
-    Both sidebands as excitation.
+    # Returns
+    # -------
+    # Both sidebands as excitation.
 
-    """
+    # """
     Nz = int(max_nz(D) * 1.0 + 0.5)
     beta_r = settings.Er / (kB * Tr)
     beta_z = settings.Er / (kB * Tz)
@@ -296,7 +285,7 @@ def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
 
         # blue
         x0 = DeltaU(rc, D, nz, dn) * settings.Er / h
-        ff = Omega(rc, D, nz, dn) * wc
+        ff = rabi_ho(rc, D, nz, dn) * wc
 
         # sum lorentzian for blue sideband - note cutoff on energy
         blue = pp * lor(x, x0, ff) * (U(rc, D, nz + dn) < E_max)
@@ -309,7 +298,7 @@ def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
         if nz >= dn:
             # rc = R(EE, D, nz)  # same as blue
             x0 = DeltaU(rc, D, nz, -dn) * settings.Er / h
-            ff = Omega(rc, D, nz - dn, dn) * wc
+            ff = rabi_ho(rc, D, nz - dn, dn) * wc
 
             # sum lorentzian on red sideband
             red = pp * lor(x, x0, ff)

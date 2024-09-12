@@ -41,14 +41,12 @@ if gsl:
 
     gsl_sf_mathieu_b = gsl.gsl_sf_mathieu_b
 
-    @njit
-    def _gsl_mathieu_b(n, q):
-        return gsl_sf_mathieu_b(n, q)
-
     # this is fast!
-    @vectorize([float64(int64, float64)])
+    @vectorize([float64(int64, float64)], nopython=True)
     def gsl_mathieu_b(n, q):
-        return _gsl_mathieu_b(n, q)
+        if n < 1:
+            return np.nan
+        return gsl_sf_mathieu_b(n, q)
 
     mathieu_b = gsl_mathieu_b
 
@@ -69,14 +67,10 @@ if gsl:
 
     gsl_sf_mathieu_se = gsl.gsl_sf_mathieu_se
 
-    @njit
-    def _gsl_mathieu_se(n, q, x):
-        return gsl_sf_mathieu_se(n, q, x)
-
     # this is fast!
-    @vectorize([float64(int64, float64, float64)])
+    @vectorize([float64(int64, float64, float64)], nopython=True)
     def gsl_mathieu_se(n, q, x):
-        return _gsl_mathieu_se(n, q, x)
+        return gsl_sf_mathieu_se(n, q, x)
 
     mathieu_se = gsl_mathieu_se
 
@@ -85,8 +79,8 @@ else:
     mathieu_se = scipy_mathieu_se
 
 
-@njit
-def _mathieu_b_asymptotic(m, q):
+@vectorize([float64(int64, float64)], nopython=True)
+def mathieu_b_asymptotic(m, q):
     """Asymptotic approximation of the characteristic value of odd Mathieu functions
 
     See https://dlmf.nist.gov/28
@@ -108,8 +102,3 @@ def _mathieu_b_asymptotic(m, q):
     result = (2.0 * s - 2.0 * h) * h + term3 + (term4 + (term5 + (term6 + (term7 + term8 / h) / h) / h) / h) / h
 
     return result
-
-
-@vectorize([float64(int64, float64)])
-def mathieu_b_asymptotic(n, q):
-    return _mathieu_b_asymptotic(n, q)
