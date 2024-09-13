@@ -115,7 +115,7 @@ def beloy_z(rho, D, nz):
     return 2 * abs(res2[0]) * np.exp(-2 * rho**2)
 
 
-@vectorize([(float64, float64, float64)(float64, float64, float64)])
+@np.vectorize
 def beloy_XYZ(D, Tz, Tr):
     """Return the effective trap depths X, Y and Z from the Born-Oppenheimer model (Beloy2020 eq. 19)
 

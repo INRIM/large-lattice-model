@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp
 from matplotlib import pyplot as plt
 
-from large_lattice_model.latticemodel import OmegaMat2, R, max_nz, rabi_bo, rabi_ho
+from large_lattice_model.latticemodel import R, max_nz, rabi_bo, rabi_ho
 
 plt.close("all")
 plt.ion()
