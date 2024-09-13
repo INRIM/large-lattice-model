@@ -10,8 +10,6 @@ packages = [{include = "large_lattice_model", from = "src"}]
 python = "^3.10"
 numpy = "^2.0.1"
 scipy = "^1.14.0"
-#https://stackoverflow.com/questions/77316505/im-having-a-bad-time-installing-some-modules-with-poetry
-#pygsl = "^2.3.3" # poetry can't install this, so I used pip instead
 numba = "^0.60.0"
 matplotlib = "^3.9.2"
 
@@ -23,6 +21,15 @@ ipython = "^8.26.0"
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.2"
 hypothesis = "^6.112.0"
+
+
+
+[tool.poetry.group.doc.dependencies]
+sphinx = "^7.4.7"
+myst-parser = "^3.0.1"
+sphinx-rtd-theme = "^2.0.0"
+sphinx-autobuild = "^2024.9.3"
+sphinx-autoapi = "^3.3.1"
 
 [build-system]
 requires = ["poetry-core"]

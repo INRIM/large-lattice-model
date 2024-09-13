@@ -18,14 +18,19 @@ def Zf(rho, z, D, nz):
 
     Inputs
     ------
-    rho : radial coordinates in units of kappa**-1
-    z : longitudinal coordinate (normal units)
-    D : depth of the lattice in Er
-    nz : longitudinal quantum number
+    rho : float
+        radial coordinates in units of kappa**-1
+    z : float
+        longitudinal coordinate in m
+    D : float
+        depth of the lattice in Er
+    nz : int
+        longitudinal quantum number
 
     Returns
     -------
-    Z : longitudinal wavefunction
+    float
+        longitudinal wavefunction
     """
 
     Drho = D * np.exp(-(rho**2))
@@ -34,72 +39,100 @@ def Zf(rho, z, D, nz):
 
 @lru_cache(maxsize=lru_maxsize)
 def beloy_x(rho, D, nz):
-    """Beloy2020 z_nz(rho) function (page 6)
+    """Beloy2020 :math:`x_{nz}(\rho)` function (page 6)
 
-    Inputs
-    ------
-    rho : radial coordinates in units of kappa**-1
-    D : depth of the lattice in Er
-    nz : longitudinal quantum number
+    Parameters
+    ----------
+    rho : float
+        radial coordinates in units of kappa**-1
+    D : float
+        depth of the lattice in Er
+    nz : int
+        longitudinal quantum number
 
     Returns
     -------
-    z_nz :
+    float
+        :math:`x_{nz}(\rho)`
     """
 
     lim = np.pi / (2 * settings.k)
 
     res2 = integrate.quad(lambda z: Zf(rho, z, D, nz) ** 2 * np.cos(settings.k * z) ** 2, 0, lim)
-    # integrateral is even
+    # integral is even
     return 2 * abs(res2[0]) * np.exp(-(rho**2))
 
 
 @lru_cache(maxsize=lru_maxsize)
 def beloy_y(rho, D, nz):
-    """Beloy2020 z_nz(rho) function (page 6)
+    """Beloy2020 :math:`y_{nz}(\rho)` function (page 6)
 
-    Inputs
-    ------
-    rho : radial coordinates in units of kappa**-1
-    D : depth of the lattice in Er
-    nz : longitudinal quantum number
+    Parameters
+    ----------
+    rho : float
+        radial coordinates in units of kappa**-1
+    D : float
+        depth of the lattice in Er
+    nz : int
+        longitudinal quantum number
 
     Returns
     -------
-    z_nz :
+    float
+        :math:`y_{nz}(\rho)`
     """
 
     lim = np.pi / (2 * settings.k)
 
     res2 = integrate.quad(lambda z: Zf(rho, z, D, nz) ** 2 * np.sin(settings.k * z) ** 2, 0, lim)
-    # integrateral is even
+    # integral is even
     return 2 * abs(res2[0]) * np.exp(-(rho**2))
 
 
 @lru_cache(maxsize=lru_maxsize)
 def beloy_z(rho, D, nz):
-    """Beloy2020 z_nz(rho) function (page 6)
+    """Beloy2020 :math:`z_{nz}(\rho)` function (page 6)
 
-    Inputs
-    ------
-    rho : radial coordinates in units of kappa**-1
-    D : depth of the lattice in Er
-    nz : longitudinal quantum number
+    Parameters
+    ----------
+    rho : float
+        radial coordinates in units of kappa**-1
+    D : float
+        depth of the lattice in Er
+    nz : int
+        longitudinal quantum number
 
     Returns
     -------
-    z_nz :
+    float
+        :math:`z_{nz}(\rho)`
     """
 
     lim = np.pi / (2 * settings.k)
 
     res2 = integrate.quad(lambda z: Zf(rho, z, D, nz) ** 2 * np.cos(settings.k * z) ** 4, 0, lim)
-    # integrateral is even
+    # integral is even
     return 2 * abs(res2[0]) * np.exp(-2 * rho**2)
 
 
 @vectorize([(float64, float64, float64)(float64, float64, float64)])
 def beloy_XYZ(D, Tz, Tr):
+    """Return the effective trap depths X, Y and Z from the Born-Oppenheimer model (Beloy2020 eq. 19)
+
+    Parameters
+    ----------
+    D : array_like
+        depth of the lattice in Er
+    Tz : array_like
+        longitudinal temperature in K
+    Tz : array_like
+        radial temperature in K
+
+    Returns
+    -------
+    (array_like, array_like, array_like)
+        effective trap depths X, Y and Z
+    """
     beta_r = settings.Er / (kB * Tr)
     beta_z = settings.Er / (kB * Tz)
 

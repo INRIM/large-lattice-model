@@ -3,7 +3,7 @@ from ctypes.util import find_library
 
 import numpy as np
 import scipy.special
-from numba import float64, int64, njit, vectorize
+from numba import float64, int64, vectorize
 
 # scipy Mathieu special functions are currently bugged (they have some discontinuities)
 # see https://github.com/scipy/scipy/pull/14577
@@ -44,6 +44,20 @@ if gsl:
     # this is fast!
     @vectorize([float64(int64, float64)], nopython=True)
     def gsl_mathieu_b(n, q):
+        """GSL implementation of the characteristic value of odd Mathieu functions :math:`b_n(q)`
+
+        Parameters
+        ----------
+        n : array_like
+            order of the function
+        q : array_like
+            parameter of the function
+
+        Returns
+        -------
+        array_like
+            characteristic value of odd Mathieu functions
+        """
         if n < 1:
             return np.nan
         return gsl_sf_mathieu_b(n, q)
@@ -55,8 +69,26 @@ else:
     mathieu_b = scipy_mathieu_b
 
 
+"""Odd Mathieu function from scipy implementation, with input in radians and dropping the derivative"""
+
+
 def scipy_mathieu_se(m, q, x):
-    """Odd Mathieu function from scipy implementation, with input in radians and dropping the derivative"""
+    """Scipy implementation of the odd Mathieu function :math:`se_m(x, q)`.
+
+    Parameters
+    ----------
+    m : array_like
+        order of the function
+    q : array_like
+        parameter of the function
+    x : array_like
+        argument of the function in radians
+
+    Returns
+    -------
+    array_like
+        value of the function
+    """
     func, deriv = scipy.special.mathieu_sem(m, q, x * 180.0 / np.pi)
     return func
 
@@ -70,6 +102,22 @@ if gsl:
     # this is fast!
     @vectorize([float64(int64, float64, float64)], nopython=True)
     def gsl_mathieu_se(n, q, x):
+        """GSL implementation of the odd Mathieu function :math:`se_m(x, q)`.
+
+        Parameters
+        ----------
+        m : array_like
+            order of the function
+        q : array_like
+            parameter of the function
+        x : array_like
+            argument of the function in radians
+
+        Returns
+        -------
+        array_like
+            value of the function
+        """
         return gsl_sf_mathieu_se(n, q, x)
 
     mathieu_se = gsl_mathieu_se
