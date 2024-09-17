@@ -30,7 +30,8 @@ def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
     E_max : float, optional
         max energy level in Er, by default 0.0
     fac : float, optional
-        parameter controlling the number of lorentzian functions used to calculate the sideband shape, higher number will give smoother sidebands at the expense of more computational time, by default 10
+        parameter controlling the number of lorentzian functions used to calculate the sideband shape, higher number
+        will give smoother sidebands at the expense of more computational time, by default 10
 
     Returns
     -------
@@ -41,8 +42,9 @@ def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
     Notes
     -----
     The sideband shape is calculated numerically as the finite sum of lorentzian functions.
-    The number of functions used in the calculation is proportional to the energy gap :math:`U_{n_z'}(0) - U_{n_z}(0)` (equivalent to summing a uniform distribution of Lorentzian functions in energy)
-    and it is suppressed by a scaling :math:`\propto 1/\sqrt{n_z}`, to save computational time on the scarcely populated high longitudinal states.
+    The number of functions used in the calculation is proportional to the energy gap :math:`U_{n_z'}(0) - U_{n_z}(0)`
+    (equivalent to summing a uniform distribution of Lorentzian functions in energy) and it is suppressed by
+    a scaling :math:`\propto 1/\sqrt{n_z}`, to save computational time on the scarcely populated high longitudinal states.
 
     Notes
     -----

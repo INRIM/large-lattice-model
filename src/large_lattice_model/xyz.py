@@ -2,7 +2,6 @@ from functools import lru_cache
 
 import numpy as np
 import scipy.integrate as integrate
-from numba import float64, vectorize
 from scipy.constants import k as kB
 
 import large_lattice_model.settings as settings
@@ -38,7 +37,7 @@ def Zf(rho, z, D, nz):
 
 
 @lru_cache(maxsize=lru_maxsize)
-def beloy_x(rho, D, nz):
+def beloy_xn(rho, D, nz):
     """Beloy2020 :math:`x_{nz}(\rho)` function (page 6)
 
     Parameters
@@ -64,7 +63,7 @@ def beloy_x(rho, D, nz):
 
 
 @lru_cache(maxsize=lru_maxsize)
-def beloy_y(rho, D, nz):
+def beloy_yn(rho, D, nz):
     """Beloy2020 :math:`y_{nz}(\rho)` function (page 6)
 
     Parameters
@@ -90,7 +89,7 @@ def beloy_y(rho, D, nz):
 
 
 @lru_cache(maxsize=lru_maxsize)
-def beloy_z(rho, D, nz):
+def beloy_zn(rho, D, nz):
     """Beloy2020 :math:`z_{nz}(\rho)` function (page 6)
 
     Parameters
@@ -148,7 +147,7 @@ def beloy_XYZ(D, Tz, Tr):
     for nz in nnz:
         R0 = R(0, D, nz)
         # x
-        resx = integrate.quad(lambda rho: beloy_x(rho, D, nz) * rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
+        resx = integrate.quad(lambda rho: beloy_xn(rho, D, nz) * rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
         numx += resx[0] * Qnz[nz]
 
         # y = exp(-rho^2) - x
@@ -156,10 +155,38 @@ def beloy_XYZ(D, Tz, Tr):
         numy += (resy[0] - resx[0]) * Qnz[nz]
 
         # z
-        res = integrate.quad(lambda rho: beloy_z(rho, D, nz) * rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
+        res = integrate.quad(lambda rho: beloy_zn(rho, D, nz) * rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
         numz += res[0] * Qnz[nz]
 
         res = integrate.quad(lambda rho: rho * (np.exp(-U(rho, D, nz) * beta_r) - 1), 0, R0)
         den += res[0] * Qnz[nz]
 
     return numx / den, numy / den, numz / den
+
+
+# def modified_ushijima_zeta(D, Tr, j):
+#     return (1 + j*(kB*Tr)/(D*settings.Er))**-1
+
+
+# @np.vectorize
+# def  modified_ushijima_XYZ(D, Tr, nz):
+#     """Return the effective trap depths Xn, Yn and Zn from the modified Ushijima model (Beloy2020 eq. 23)
+
+#     Parameters
+#     ----------
+#     D : array_like
+#         depth of the lattice in Er
+#     Tz : array_like
+#         longitudinal temperature in K
+#     Tz : array_like
+#         radial temperature in K
+
+#     Returns
+#     -------
+#     (array_like, array_like, array_like)
+#         effective trap depths X, Y and Z
+#     """
+
+#     Xn = modified_ushijima_zeta(D, Tr, 1) - (nz+0.5)*modified_ushijima_zeta(D, Tr, 0.5)*D**-0.5
+#     Yn = (nz+0.5)*modified_ushijima_zeta(D, Tr, 0.5)*D**-0.5
+#     Zn = modified_ushijima_zeta(D, Tr, 2) - 2*(nz+0.5)*modified_ushijima_zeta(D, Tr, 1.5)*D**-0.5 + 1.5*(nz**2 + nz + 0.5)* modified_ushijima_zeta(D, Tr, 1)*D**-1
