@@ -3,6 +3,7 @@ from functools import lru_cache  # with maxsize > ~16k reduces computation time 
 import numpy as np
 import scipy.integrate as integrate
 import scipy.optimize as opt
+from scipy.constants import k as kB
 from scipy.special import eval_genlaguerre, factorial
 
 import large_lattice_model.settings as settings
@@ -261,6 +262,31 @@ def max_nz(D):
     max_n = int(-U(0, D, 0) / np.sqrt(D))
     test = np.arange(max_n)
     return np.amax(np.where(U(0, D, test) < 0))
+
+
+def two_temperature_distribution(E, E_min, Tz, Tr):
+    """Two temperature distribution of atoms in the lattice based on Beloy2020 eq. 24.
+    Not normalized.
+
+    Parameters
+    ----------
+    E : array_like
+        atom energy level in Er
+    E_min : float
+        bottom of the trap in Er
+    Tz : float
+        longitudinal temperature in K
+    Tr : float
+        radial temperature in K
+
+    Returns
+    -------
+    float or ndarray
+        not normalized temperature distribution as :math:`e^{-(E-E_min)/(k T_r)} e^{-E_min/(k T_z)}`
+    """
+    beta_r = settings.Er / (kB * Tr)
+    beta_z = settings.Er / (kB * Tz)
+    return np.exp(-(E - E_min) * beta_r) * np.exp(-E_min * beta_z)
 
 
 def lorentzian(x, x0, w):

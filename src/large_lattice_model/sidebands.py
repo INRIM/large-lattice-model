@@ -3,7 +3,7 @@ from scipy.constants import h
 from scipy.constants import k as kB
 
 from large_lattice_model import settings
-from large_lattice_model.latticemodel import DeltaU, Gr, R, U, lorentzian, max_nz, rabi_ho
+from large_lattice_model.latticemodel import DeltaU, Gr, R, U, lorentzian, max_nz, rabi_ho, two_temperature_distribution
 
 
 def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
@@ -52,8 +52,6 @@ def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
 
     """
     Nz = int(max_nz(D) * 1.0 + 0.5)
-    beta_r = settings.Er / (kB * Tr)
-    beta_z = settings.Er / (kB * Tz)
 
     tot = np.zeros(x.shape)
     total_norm = 0
@@ -61,9 +59,9 @@ def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
     for nz in np.arange(Nz + 1):
         E_min = U(0, D, nz)
 
+        # method to calculate number of lorentzian function to sum
         # this just save computational time
         # use less samples for high levels
-        # method to calculate number of lorentzian function to sum
         N = int(DeltaU(0, D, nz, dn) * fac * (nz + 1) ** -0.5)
 
         # Uniform sampling in E, as a *vertical* array
@@ -72,10 +70,8 @@ def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
         # dE = (E_max - E_min)/N
 
         # calc normalization
-        pp = Gr(rc, D, nz) * np.exp(-(EE - E_min) * beta_r) * np.exp(-E_min * beta_z)
-        total_norm += np.trapz(
-            pp, EE, axis=0
-        )  # sum(pp, axis=0) *dE #trapz(pp, EE, axis=0) #trapz is a bit slower, but handles better different Ns
+        pp = Gr(rc, D, nz) * two_temperature_distribution(EE, E_min, Tz, Tr)
+        total_norm += np.trapz(pp, EE, axis=0)
 
         # blue
         x0 = DeltaU(rc, D, nz, dn) * settings.Er / h
