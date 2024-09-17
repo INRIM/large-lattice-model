@@ -1,3 +1,11 @@
+"""
+This submodules implements teh special functions `mathieu_b` and `mathieu_se`.
+
+It uses `ctypes` to import the GSL implementation sof these functions.
+If GSL is not found, it will fallback to `scipy` special functions, whose current implementation
+is not continuous for some high trap depths.
+"""
+
 import ctypes
 from ctypes.util import find_library
 

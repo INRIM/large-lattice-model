@@ -1,3 +1,8 @@
+"""
+This submodule implements the main lattice model functions in the Born-Oppenheimer approximation from Beloy 2020.
+When possible, functions are cached with `lru_cache` from `functools` to improve performances over repeated calls.
+"""
+
 from functools import lru_cache  # with maxsize > ~16k reduces computation time from 70 s to 10 s
 
 import numpy as np
@@ -30,7 +35,7 @@ def set_atom(atom):
     return settings.Er, settings.k, settings.kc
 
 
-def set_atomic_properties(lattice_frequency, clock_frequency, atomic_mass):
+def set_properties(lattice_frequency, clock_frequency, atomic_mass):
     """Set custom scale parameters of the lattice model (recoil energy, lattice wavevector, clock wavevector).
 
     Parameters
@@ -264,7 +269,7 @@ def max_nz(D):
     return np.amax(np.where(U(0, D, test) < 0))
 
 
-def two_temperature_distribution(E, E_min, Tz, Tr):
+def two_temp_dist(E, E_min, Tz, Tr):
     """Two temperature distribution of atoms in the lattice based on Beloy2020 eq. 24.
     Not normalized.
 
@@ -282,7 +287,7 @@ def two_temperature_distribution(E, E_min, Tz, Tr):
     Returns
     -------
     float or ndarray
-        not normalized temperature distribution as :math:`e^{-(E-E_min)/(k T_r)} e^{-E_min/(k T_z)}`
+        not normalized temperature distribution as :math:`e^{-(E-E_{min})/(k T_r)} e^{-E_{min}/(k T_z)}`
     """
     beta_r = settings.Er / (kB * Tr)
     beta_z = settings.Er / (kB * Tz)

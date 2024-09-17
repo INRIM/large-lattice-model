@@ -1,9 +1,13 @@
+"""
+This submodule implements the main sideband function in the Born-Oppenheimer approximation.
+"""
+
 import numpy as np
 from scipy.constants import h
 from scipy.constants import k as kB
 
 from large_lattice_model import settings
-from large_lattice_model.latticemodel import DeltaU, Gr, R, U, lorentzian, max_nz, rabi_ho, two_temperature_distribution
+from large_lattice_model.latticemodel import DeltaU, Gr, R, U, lorentzian, max_nz, rabi_ho, two_temp_dist
 
 
 def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
@@ -70,7 +74,7 @@ def sidebands(x, D, Tz, Tr, b, r, wc, dn=1, E_max=0.0, fac=10):
         # dE = (E_max - E_min)/N
 
         # calc normalization
-        pp = Gr(rc, D, nz) * two_temperature_distribution(EE, E_min, Tz, Tr)
+        pp = Gr(rc, D, nz) * two_temp_dist(EE, E_min, Tz, Tr)
         total_norm += np.trapz(pp, EE, axis=0)
 
         # blue
