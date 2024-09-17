@@ -6,13 +6,12 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-import importlib.metadata
 from pathlib import Path
 
 project = "Large-lattice-model"
 copyright = "2021-2024 Marco Pizzocaro - Istituto Nazionale di Ricerca Metrologica (INRIM)"
 author = "Marco Pizzocaro"
-release = importlib.metadata.version("large_lattice_model")
+release = "0.1.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
