@@ -164,29 +164,35 @@ def beloy_XYZ(D, Tz, Tr):
     return numx / den, numy / den, numz / den
 
 
-# def modified_ushijima_zeta(D, Tr, j):
-#     return (1 + j*(kB*Tr)/(D*settings.Er))**-1
+def modified_ushijima_zeta(D, Tr, j):
+    return (1 + j * (kB * Tr) / (D * settings.Er)) ** -1
 
 
-# @np.vectorize
-# def  modified_ushijima_XYZ(D, Tr, nz):
-#     """Return the effective trap depths Xn, Yn and Zn from the modified Ushijima model (Beloy2020 eq. 23)
+@np.vectorize
+def modified_ushijima_XYZ_nz(D, Tr, nz):
+    """Return the effective trap depths Xn, Yn and Zn from the modified Ushijima model (Beloy2020 eq. 23)
 
-#     Parameters
-#     ----------
-#     D : array_like
-#         depth of the lattice in Er
-#     Tz : array_like
-#         longitudinal temperature in K
-#     Tz : array_like
-#         radial temperature in K
+    Parameters
+    ----------
+    D : array_like
+        depth of the lattice in Er
+    Tz : array_like
+        longitudinal temperature in K
+    Tz : array_like
+        radial temperature in K
 
-#     Returns
-#     -------
-#     (array_like, array_like, array_like)
-#         effective trap depths X, Y and Z
-#     """
+    Returns
+    -------
+    (array_like, array_like, array_like)
+        effective trap depths X, Y and Z
+    """
 
-#     Xn = modified_ushijima_zeta(D, Tr, 1) - (nz+0.5)*modified_ushijima_zeta(D, Tr, 0.5)*D**-0.5
-#     Yn = (nz+0.5)*modified_ushijima_zeta(D, Tr, 0.5)*D**-0.5
-#     Zn = modified_ushijima_zeta(D, Tr, 2) - 2*(nz+0.5)*modified_ushijima_zeta(D, Tr, 1.5)*D**-0.5 + 1.5*(nz**2 + nz + 0.5)* modified_ushijima_zeta(D, Tr, 1)*D**-1
+    X_nz = modified_ushijima_zeta(D, Tr, 1) - (nz + 0.5) * modified_ushijima_zeta(D, Tr, 0.5) * D**-0.5
+    Y_nz = (nz + 0.5) * modified_ushijima_zeta(D, Tr, 0.5) * D**-0.5
+    Z_nz = (
+        modified_ushijima_zeta(D, Tr, 2)
+        - 2 * (nz + 0.5) * modified_ushijima_zeta(D, Tr, 1.5) * D**-0.5
+        + 1.5 * (nz**2 + nz + 0.5) * modified_ushijima_zeta(D, Tr, 1) * D**-1
+    )
+
+    return X_nz, Y_nz, Z_nz
