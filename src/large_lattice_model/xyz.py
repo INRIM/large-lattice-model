@@ -213,3 +213,38 @@ def modified_ushijima_XYZ_nz(D, Tr, nz):
     )
 
     return X_nz, Y_nz, Z_nz
+
+
+@np.vectorize
+def modified_ushijima_XYZ(D, Tz, Tr):
+    """Return the effective trap depths X, Y and Z from the modified Ushijima model (Beloy2020 eq. 23)
+    averaged over the nz levels.
+
+    Parameters
+    ----------
+    D : array_like
+        depth of the lattice in Er
+    Tz : array_like
+        longitudinal temperature in K
+    Tz : array_like
+        radial temperature in K
+
+    Returns
+    -------
+    (array_like, array_like, array_like)
+        effective trap depths X, Y and Z
+    """
+    nnz = np.arange(max_nz(D))
+
+    Ez = 2 * settings.Er * np.sqrt(D)
+    ho_energies = Ez * (nnz + 0.5) - 0.5 * settings.Er * (nnz**2 + nnz + 0.5)
+    thermal_weights = np.exp(-ho_energies / (kB * Tz))
+    thermal_weights /= sum(thermal_weights)
+
+    Xn, Yn, Zn = modified_ushijima_XYZ_nz(D, Tr, nnz)
+
+    X = np.dot(thermal_weights, Xn)
+    Y = np.dot(thermal_weights, Yn)
+    Z = np.dot(thermal_weights, Zn)
+
+    return X, Y, Z
