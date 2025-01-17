@@ -165,21 +165,38 @@ def beloy_XYZ(D, Tz, Tr):
 
 
 def modified_ushijima_zeta(D, Tr, j):
-    return (1 + j * (kB * Tr) / (D * settings.Er)) ** -1
-
-
-@np.vectorize
-def modified_ushijima_XYZ_nz(D, Tr, nz):
-    """Return the effective trap depths Xn, Yn and Zn from the modified Ushijima model (Beloy2020 eq. 23)
+    """Return the effective trap depth zeta (Beloy2020 eq. 23)
 
     Parameters
     ----------
     D : array_like
         depth of the lattice in Er
-    Tz : array_like
-        longitudinal temperature in K
-    Tz : array_like
+    Tr : array_like
         radial temperature in K
+    j : float
+        effective trap depth degree
+
+    Returns
+    -------
+    float or array
+         effective trap depth zeta
+    """
+    return (1 + j * (kB * Tr) / (D * settings.Er)) ** -1
+
+
+@np.vectorize
+def modified_ushijima_XYZ_nz(D, Tr, nz):
+    """Return the effective trap depths Xnz, Ynz and Znz from the modified Ushijima model (Beloy2020 eq. 23)
+    for atoms in the longitudinal quantum number nz.
+
+    Parameters
+    ----------
+    D : array_like
+        depth of the lattice in Er
+    Tr : array_like
+        radial temperature in K
+    nz : int
+        longitudinal quantum number
 
     Returns
     -------
