@@ -37,3 +37,25 @@ This work has received funding from the European Partnership on Metrology, co-fi
 ## Authors
 
 (c) 2021-2024 Marco Pizzocaro - Istituto Nazionale di Ricerca Metrologica (INRIM)
+
+
+## Basic usage
+Install from github, e.g.:
+
+    pip install git+https://github.com/INRIM/large-lattice-model.git
+
+Import the package as:
+
+    import large_lattice_model as llm
+
+By default, Large-lattice-model is set for ytterbium-171 properties. To work with Sr, call
+
+    llm.set_atom('87Sr')
+
+Example plot:
+
+    freq = np.linspace(0, 50e3, 100)
+    sideband = llm.sidebands(freq, D=100, Tz=1e-6,Tr=1e-6, r=1, b=1, w=1e3)
+    plt.figure()
+    plt.plot(freq, sideband)
+
